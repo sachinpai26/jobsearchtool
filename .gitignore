@@ -1,0 +1,71 @@
+# ==========================================
+# STRICT PII & PERSONAL DATA PROTECTION
+# ==========================================
+# Block all JSON files to guarantee zero PII leakage
+*.json
+scripts/*.json
+configs/*.json
+!configs/template_config.json
+
+# Resumes, personal documents & transcripts
+*.pdf
+*.tex
+*.html
+*.docx
+*.doc
+Sachin_*
+Ganesh_*
+Panchami_*
+Jigyasha*
+Tech_Job_Search*
+Job_Search_Toolkit*
+
+# Output digests & matches
+output_digests/
+LATEST_JOB_MATCHES*.md
+
+# Zip archives
+*.zip
+
+# Python caches
+__pycache__/
+*.py[cod]
+*$py.class
+*.so
+.Python
+build/
+develop-eggs/
+dist/
+downloads/
+eggs/
+.eggs/
+lib/
+lib64/
+parts/
+sdist/
+var/
+wheels/
+*.egg-info/
+.installed.cfg
+*.egg
+
+# Virtual environments
+venv/
+.venv/
+env/
+ENV/
+
+# Excel temporary and lock files
+~$*
+*backup.xlsx
+*staged.xlsx
+*staging*
+
+# Runtime logs & staging
+scripts/staging_*
+*.log
+
+# Operating system files
+.DS_Store
+Thumbs.db
+desktop.ini

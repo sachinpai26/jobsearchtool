@@ -1,0 +1,77 @@
+name: Live Career Portal Job Scanner
+
+on:
+  workflow_dispatch:
+    inputs:
+      config_json:
+        description: 'Paste your config.json content here'
+        required: false
+        type: string
+        default: ''
+      use_sample_template:
+        description: 'Check to run with sample demo template'
+        required: false
+        type: boolean
+        default: false
+
+jobs:
+  scan-jobs:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout Code
+        uses: actions/checkout@v4
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+          cache: 'pip'
+
+      - name: Install Dependencies
+        run: |
+          python -m pip install --upgrade pip
+          pip install requests urllib3 openpyxl
+
+      - name: Prepare Configuration
+        run: |
+          INPUT_JSON="${{ github.event.inputs.config_json }}"
+          USE_SAMPLE="${{ github.event.inputs.use_sample_template }}"
+
+          if [ -n "$INPUT_JSON" ]; then
+            echo "Using user-provided JSON configuration..."
+            echo "$INPUT_JSON" > ephemeral_config.json
+          elif [ "$USE_SAMPLE" = "true" ] || [ -z "$INPUT_JSON" ]; then
+            echo "Using sample template configuration..."
+            cp configs/template_config.json ephemeral_config.json
+          fi
+
+      - name: Run Live API Job Scan
+        run: |
+          python scripts/scan_live_jobs.py --config ephemeral_config.json --force
+
+      - name: Publish Results to GitHub Step Summary
+        run: |
+          echo "# 🎯 Live Job Matching Results" >> $GITHUB_STEP_SUMMARY
+          echo "Scan executed at **$(date -u) UTC**." >> $GITHUB_STEP_SUMMARY
+          echo "" >> $GITHUB_STEP_SUMMARY
+
+          for md in LATEST_JOB_MATCHES*.md; do
+            if [ -f "$md" ]; then
+              echo "---" >> $GITHUB_STEP_SUMMARY
+              cat "$md" >> $GITHUB_STEP_SUMMARY
+              echo "" >> $GITHUB_STEP_SUMMARY
+            fi
+          done
+
+      - name: Upload Matched Jobs Artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: live-job-matches
+          path: LATEST_JOB_MATCHES*.md
+          retention-days: 7
+
+      - name: Secure Cleanup
+        if: always()
+        run: |
+          rm -f ephemeral_config.json
