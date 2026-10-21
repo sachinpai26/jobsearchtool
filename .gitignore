@@ -6,6 +6,7 @@
 scripts/*.json
 configs/*.json
 !configs/template_config.json
+!configs/companies.json
 
 # Resumes, personal documents & transcripts
 *.pdf

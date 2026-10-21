@@ -1,0 +1,302 @@
+{
+  "_description": "Centralized Career Portals Catalog. Add companies once here; all candidate profiles can scan them automatically without repeating company blocks.",
+  "total_portals": 65,
+  "job_boards": {
+    "greenhouse": [
+      {
+        "company": "Adyen",
+        "board": "adyen"
+      },
+      {
+        "company": "Airmeet",
+        "board": "airmeet"
+      },
+      {
+        "company": "BrowserStack",
+        "board": "browserstack"
+      },
+      {
+        "company": "Canonical",
+        "board": "canonical"
+      },
+      {
+        "company": "Cloudflare",
+        "board": "cloudflare"
+      },
+      {
+        "company": "Coinbase",
+        "board": "coinbase"
+      },
+      {
+        "company": "Confluent",
+        "board": "confluent"
+      },
+      {
+        "company": "Couchbase",
+        "board": "couchbaseinc"
+      },
+      {
+        "company": "Datadog",
+        "board": "datadog"
+      },
+      {
+        "company": "Elastic",
+        "board": "elastic"
+      },
+      {
+        "company": "Epic Games",
+        "board": "epicgames"
+      },
+      {
+        "company": "Fastly",
+        "board": "fastly"
+      },
+      {
+        "company": "GitLab",
+        "board": "gitlab"
+      },
+      {
+        "company": "Grafana Labs",
+        "board": "grafanalabs"
+      },
+      {
+        "company": "Groww",
+        "board": "groww"
+      },
+      {
+        "company": "Harness",
+        "board": "harnessinc"
+      },
+      {
+        "company": "InMobi",
+        "board": "inmobi"
+      },
+      {
+        "company": "Konovo",
+        "board": "konovo"
+      },
+      {
+        "company": "Krafton",
+        "board": "krafton"
+      },
+      {
+        "company": "MongoDB",
+        "board": "mongodb"
+      },
+      {
+        "company": "Netskope",
+        "board": "netskope"
+      },
+      {
+        "company": "New Relic",
+        "board": "newrelic"
+      },
+      {
+        "company": "Okta",
+        "board": "okta"
+      },
+      {
+        "company": "Pinterest",
+        "board": "pinterest"
+      },
+      {
+        "company": "Postman",
+        "board": "postman"
+      },
+      {
+        "company": "Pure Storage",
+        "board": "purestorage"
+      },
+      {
+        "company": "Riot Games",
+        "board": "riotgames"
+      },
+      {
+        "company": "Rippling",
+        "board": "rippling"
+      },
+      {
+        "company": "Rockstar Games",
+        "board": "rockstargames"
+      },
+      {
+        "company": "Rubrik",
+        "board": "rubrik"
+      },
+      {
+        "company": "Scopely",
+        "board": "scopely"
+      },
+      {
+        "company": "ServiceTitan",
+        "board": "servicetitan"
+      },
+      {
+        "company": "Snyk",
+        "board": "snyk"
+      },
+      {
+        "company": "Starburst",
+        "board": "starburst"
+      },
+      {
+        "company": "Stripe",
+        "board": "stripe"
+      },
+      {
+        "company": "Sumo Logic",
+        "board": "sumologic"
+      },
+      {
+        "company": "Tower Research Capital",
+        "board": "towerresearchcapital"
+      },
+      {
+        "company": "Twilio",
+        "board": "twilio"
+      },
+      {
+        "company": "Unity",
+        "board": "unity3d"
+      },
+      {
+        "company": "Zscaler",
+        "board": "zscaler"
+      }
+    ],
+    "lever": [
+      {
+        "company": "Atlassian",
+        "slug": "atlassian"
+      },
+      {
+        "company": "CRED",
+        "slug": "cred"
+      },
+      {
+        "company": "JumpCloud",
+        "slug": "jumpcloud"
+      },
+      {
+        "company": "Meesho",
+        "slug": "meesho"
+      },
+      {
+        "company": "Zepto",
+        "slug": "zepto"
+      },
+      {
+        "company": "Zeta",
+        "slug": "zeta"
+      }
+    ],
+    "workday": [
+      {
+        "company": "3M",
+        "tenant": "3m",
+        "dc": "wd1",
+        "site": "Search"
+      },
+      {
+        "company": "Autodesk",
+        "tenant": "autodesk",
+        "dc": "wd1",
+        "site": "Ext"
+      },
+      {
+        "company": "BlackRock",
+        "tenant": "blackrock",
+        "dc": "wd1",
+        "site": "BlackRock_Professional"
+      },
+      {
+        "company": "Cisco",
+        "tenant": "cisco",
+        "dc": "wd5",
+        "site": "Cisco_Careers"
+      },
+      {
+        "company": "CrowdStrike",
+        "tenant": "crowdstrike",
+        "dc": "wd5",
+        "site": "crowdstrikecareers"
+      },
+      {
+        "company": "Elsevier",
+        "tenant": "relx",
+        "dc": "wd3",
+        "site": "ElsevierJobs"
+      },
+      {
+        "company": "Fidelity Investments",
+        "tenant": "fmr",
+        "dc": "wd1",
+        "site": "FidelityCareers"
+      },
+      {
+        "company": "IQVIA",
+        "tenant": "iqvia",
+        "dc": "wd1",
+        "site": "IQVIA"
+      },
+      {
+        "company": "LSEG",
+        "tenant": "lseg",
+        "dc": "wd3",
+        "site": "Careers"
+      },
+      {
+        "company": "Mastercard",
+        "tenant": "mastercard",
+        "dc": "wd1",
+        "site": "CorporateCareers"
+      },
+      {
+        "company": "NVIDIA",
+        "tenant": "nvidia",
+        "dc": "wd5",
+        "site": "NVIDIAExternalCareerSite"
+      },
+      {
+        "company": "PVH Corp",
+        "tenant": "pvh",
+        "dc": "wd1",
+        "site": "PVH_Careers"
+      },
+      {
+        "company": "PwC",
+        "tenant": "pwc",
+        "dc": "wd3",
+        "site": "Global_Experienced_Careers"
+      },
+      {
+        "company": "Target Tech",
+        "tenant": "target",
+        "dc": "wd5",
+        "site": "targetcareers"
+      }
+    ],
+    "smartrecruiters": [
+      {
+        "company": "Delivery Hero",
+        "company_id": "DeliveryHero"
+      },
+      {
+        "company": "Renesas Electronics",
+        "company_id": "RenesasElectronics"
+      },
+      {
+        "company": "ServiceNow",
+        "company_id": "ServiceNow"
+      },
+      {
+        "company": "Siemens",
+        "company_id": "Siemens"
+      },
+      {
+        "company": "Ubisoft",
+        "company_id": "Ubisoft2"
+      }
+    ]
+  }
+}

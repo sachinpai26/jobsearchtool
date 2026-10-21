@@ -1,7 +1,7 @@
 {
   "candidate": {
-    "name": "Your Name Here",
-    "target_level": "Mid / Senior / Lead",
+    "name": "Candidate Name",
+    "target_level": "Senior / Lead Specialist",
     "target_roles": [
       "Target Role 1",
       "Target Role 2"
@@ -35,33 +35,5 @@
   "automation": {
     "cadence_hours": 12.0,
     "output_markdown_file": "LATEST_JOB_MATCHES.md"
-  },
-  "job_boards": {
-    "greenhouse": [
-      {"company": "Stripe", "board": "stripe"},
-      {"company": "GitLab", "board": "gitlab"},
-      {"company": "Elastic", "board": "elastic"},
-      {"company": "Postman", "board": "postman"},
-      {"company": "Pure Storage", "board": "purestorage"},
-      {"company": "Okta", "board": "okta"},
-      {"company": "Groww", "board": "groww"}
-    ],
-    "lever": [
-      {"company": "Meesho", "slug": "meesho"},
-      {"company": "CRED", "slug": "cred"},
-      {"company": "Zeta", "slug": "zeta"},
-      {"company": "JumpCloud", "slug": "jumpcloud"}
-    ],
-    "workday": [
-      {"company": "CrowdStrike", "tenant": "crowdstrike", "dc": "wd5", "site": "crowdstrikecareers"},
-      {"company": "Cisco", "tenant": "cisco", "dc": "wd5", "site": "Cisco_Careers"},
-      {"company": "Target Tech", "tenant": "target", "dc": "wd5", "site": "targetcareers"},
-      {"company": "NVIDIA", "tenant": "nvidia", "dc": "wd5", "site": "NVIDIAExternalCareerSite"}
-    ],
-    "smartrecruiters": [
-      {"company": "ServiceNow", "company_id": "ServiceNow"},
-      {"company": "Renesas Electronics", "company_id": "RenesasElectronics"}
-    ]
   }
 }
-

@@ -2,8 +2,8 @@
 """
 Configurable Multi-User Live Job Postings Scanner
 ==================================================
-Directly queries public Greenhouse and Lever JSON APIs based on criteria
-specified in scripts/job_search_config.json.
+Directly queries public Greenhouse, Lever, Workday, and SmartRecruiters JSON APIs based on criteria
+specified in candidate profile JSON and centralized configs/companies.json.
 Supports 12-hour cadence tracking and exports results to a Markdown digest.
 """
 
@@ -58,7 +58,29 @@ def build_regex_pattern(keywords_list):
     escaped = [re.escape(k) for k in keywords_list]
     return re.compile(r"\b(" + "|".join(escaped) + r")\b", re.IGNORECASE)
 
-def init_config(custom_path=None):
+def load_companies_catalog(path=None):
+    candidates = []
+    if path:
+        p = Path(path)
+        if not p.is_absolute():
+            p = (BASE_DIR / p).resolve()
+        candidates.append(p)
+    candidates.extend([
+        BASE_DIR / "configs" / "companies.json",
+        BASE_DIR / "companies.json",
+        BASE_DIR / "scripts" / "companies.json"
+    ])
+    for c in candidates:
+        if c.exists():
+            try:
+                with open(c, "r", encoding="utf-8") as f:
+                    data = json.load(f)
+                    return data.get("job_boards", data), c
+            except Exception as e:
+                print(f"[!] Warning: Failed to parse catalog {c}: {e}")
+    return {}, None
+
+def init_config(custom_path=None, custom_companies=None):
     global CONFIG, CONFIG_FILE, SEARCH_FILTERS, INCLUDE_KEYWORDS, EXCLUDE_TITLE_KEYWORDS
     global LOCATION_KEYWORDS, EXCLUDE_LOCATION_KEYWORDS, CANDIDATE_NAME, AUTOMATION_CFG
     global DEFAULT_CADENCE, DIGEST_FILE, TARGET_GREENHOUSE_BOARDS, TARGET_LEVER_COMPANIES
@@ -66,6 +88,8 @@ def init_config(custom_path=None):
     global EXCLUDE_TITLE_REGEX, LOCATION_REGEX
 
     CONFIG, CONFIG_FILE = load_config(custom_path)
+    catalog_boards, catalog_file = load_companies_catalog(custom_companies)
+
     SEARCH_FILTERS = CONFIG.get("search_filters", DEFAULT_CONFIG["search_filters"])
     INCLUDE_KEYWORDS = [k.lower() for k in SEARCH_FILTERS.get("include_keywords", [])]
     EXCLUDE_TITLE_KEYWORDS = [k.lower() for k in SEARCH_FILTERS.get("exclude_title_keywords", [])]
@@ -77,10 +101,26 @@ def init_config(custom_path=None):
     DEFAULT_CADENCE = AUTOMATION_CFG.get("cadence_hours", 12.0)
     DIGEST_FILE = BASE_DIR / AUTOMATION_CFG.get("output_markdown_file", "LATEST_JOB_MATCHES.md")
 
-    TARGET_GREENHOUSE_BOARDS = CONFIG.get("job_boards", {}).get("greenhouse", [])
-    TARGET_LEVER_COMPANIES = CONFIG.get("job_boards", {}).get("lever", [])
-    TARGET_WORKDAY_COMPANIES = CONFIG.get("job_boards", {}).get("workday", [])
-    TARGET_SMARTRECRUITERS_COMPANIES = CONFIG.get("job_boards", {}).get("smartrecruiters", [])
+    # If candidate config specifies its own job_boards, merge or use them.
+    # Otherwise, fallback cleanly to the centralized companies catalog!
+    cfg_boards = CONFIG.get("job_boards", {})
+    gh = cfg_boards.get("greenhouse") if cfg_boards.get("greenhouse") is not None else catalog_boards.get("greenhouse", [])
+    lv = cfg_boards.get("lever") if cfg_boards.get("lever") is not None else catalog_boards.get("lever", [])
+    wd = cfg_boards.get("workday") if cfg_boards.get("workday") is not None else catalog_boards.get("workday", [])
+    sm = cfg_boards.get("smartrecruiters") if cfg_boards.get("smartrecruiters") is not None else catalog_boards.get("smartrecruiters", [])
+
+    # If candidate config specifies target_companies filter, apply it
+    target_comp_filter = [c.lower() for c in CONFIG.get("target_companies", [])]
+    if target_comp_filter:
+        gh = [c for c in gh if c.get("company", "").lower() in target_comp_filter]
+        lv = [c for c in lv if c.get("company", "").lower() in target_comp_filter]
+        wd = [c for c in wd if c.get("company", "").lower() in target_comp_filter]
+        sm = [c for c in sm if c.get("company", "").lower() in target_comp_filter]
+
+    TARGET_GREENHOUSE_BOARDS = gh
+    TARGET_LEVER_COMPANIES = lv
+    TARGET_WORKDAY_COMPANIES = wd
+    TARGET_SMARTRECRUITERS_COMPANIES = sm
 
     EXCLUDE_TITLE_REGEX = build_regex_pattern(EXCLUDE_TITLE_KEYWORDS)
     LOCATION_REGEX = build_regex_pattern(LOCATION_KEYWORDS)
@@ -91,10 +131,8 @@ def is_matching_title(title_str):
     if not title_str:
         return False
     t = title_str.lower()
-    # Must match at least one inclusion keyword
     if not any(k in t for k in INCLUDE_KEYWORDS):
         return False
-    # Must not match any exclusion keyword
     if EXCLUDE_TITLE_REGEX and EXCLUDE_TITLE_REGEX.search(t):
         return False
     return True
@@ -103,9 +141,7 @@ def is_matching_location(loc_str):
     if not loc_str:
         return False
     loc = loc_str.lower()
-    # Check for excluded locations (e.g., Indiana vs India)
     if any(ex in loc for ex in EXCLUDE_LOCATION_KEYWORDS):
-        # Allow only if it legitimately also contains a target location keyword
         if not any(k in loc for k in ["bengaluru", "bangalore"]):
             return False
     if LOCATION_REGEX and LOCATION_REGEX.search(loc):
@@ -125,7 +161,6 @@ def scan_greenhouse(session, comp):
             for j in jobs:
                 title = j.get("title", "")
                 loc = (j.get("location", {}) or {}).get("name", "")
-
                 if is_matching_title(title) and is_matching_location(loc):
                     matches.append({
                         "company": cname,
@@ -149,7 +184,6 @@ def scan_lever(session, comp):
             for j in jobs:
                 title = j.get("text", "")
                 loc = (j.get("categories", {}) or {}).get("location", "")
-
                 if is_matching_title(title) and is_matching_location(loc):
                     matches.append({
                         "company": cname,
@@ -180,7 +214,7 @@ def scan_workday(session, comp):
         "appliedFacets": {},
         "limit": 20,
         "offset": 0,
-        "searchText": "devops"
+        "searchText": ""
     }
     try:
         r = session.post(endpoint, json=payload, headers=headers, timeout=10)
@@ -225,7 +259,6 @@ def scan_smartrecruiters(session, comp):
         pass
     return matches
 
-
 def should_run(cadence_hours):
     if not METADATA_FILE.exists():
         return True
@@ -247,7 +280,6 @@ def record_run(total_found):
     now_utc = datetime.now(timezone.utc)
     ist_tz = timezone(timedelta(hours=5, minutes=30))
     now_ist = now_utc.astimezone(ist_tz)
-    
     meta = {
         "last_run_epoch": time.time(),
         "last_run_ist": now_ist.strftime("%Y-%m-%d %I:%M:%S %p IST"),
@@ -258,18 +290,16 @@ def record_run(total_found):
         json.dump(meta, f, indent=2)
 
 def save_digest(matches, run_time_str):
-    loc_summary = ", ".join(LOCATION_KEYWORDS[:3]).title()
     lines = [
         f"# 🎯 Active Job Matches ({CANDIDATE_NAME})",
         f"**Last Automated Scan:** `{run_time_str}` | **Total Roles Identified:** `{len(matches)}`",
         "",
-        f"> Filter configuration loaded dynamically from [`scripts/{CONFIG_FILE.name}`](scripts/{CONFIG_FILE.name}).",
-        f"> Cadence: Automatically runs every {DEFAULT_CADENCE:.0f} hours from the last run whenever your laptop starts or logs in.",
+        f"> Filter configuration loaded dynamically from [`{CONFIG_FILE.name}`]({CONFIG_FILE.name}).",
+        f"> Centralized company catalog scanned: Greenhouse, Lever, Workday, SmartRecruiters.",
         "",
         "| # | Company | Role Title | Location | Direct Apply / Job Link |",
         "| :---: | :--- | :--- | :--- | :--- |"
     ]
-
     for idx, j in enumerate(matches, 1):
         lines.append(f"| {idx} | **{j['company']}** | {j['title']} | {j['location']} | [View & Apply]({j['url']}) |")
 
@@ -277,7 +307,7 @@ def save_digest(matches, run_time_str):
         "",
         "---",
         f"### 💡 Next Steps for {CANDIDATE_NAME}:",
-        "1. Prioritize roles at **DevOps Toolmakers & Tier-1 Platforms** where your tech stack matches production requirements.",
+        "1. Prioritize roles at top tier platforms where your tech stack matches requirements.",
         "2. Cross-reference connections on LinkedIn for warm referrals before direct ATS submission.",
         "3. Update application status in [`Careers Sites.xlsx`](Careers%20Sites.xlsx) when applying."
     ])
@@ -290,14 +320,16 @@ def main():
     parser = argparse.ArgumentParser(description="Configurable live job scanner.")
     parser.add_argument("--force", action="store_true", help="Force run regardless of cadence window.")
     parser.add_argument("--cadence", type=float, default=DEFAULT_CADENCE, help="Cadence in hours.")
-    parser.add_argument("--config", type=str, help="Path to alternative JSON config file.")
+    parser.add_argument("--config", type=str, help="Path to candidate profile JSON config file.")
+    parser.add_argument("--companies", type=str, help="Path to centralized companies JSON catalog.")
     args = parser.parse_args()
 
+    cfg_p = None
     if args.config:
         cfg_p = Path(args.config)
         if not cfg_p.is_absolute():
             cfg_p = (BASE_DIR / cfg_p).resolve()
-        init_config(cfg_p)
+    init_config(cfg_p, args.companies)
 
     cadence = args.cadence if args.cadence else DEFAULT_CADENCE
 
@@ -338,7 +370,6 @@ def main():
         if found:
             print(f"[+] {comp['company']} (SmartRecruiters): Found {len(found)} matching role(s)")
             all_matches.extend(found)
-
 
     ist_tz = timezone(timedelta(hours=5, minutes=30))
     run_time_str = datetime.now(timezone.utc).astimezone(ist_tz).strftime("%Y-%m-%d %I:%M %p IST")
