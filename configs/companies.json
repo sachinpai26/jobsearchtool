@@ -1,6 +1,6 @@
 {
   "_description": "Centralized Career Portals Catalog. Add companies once here; all candidate profiles can scan them automatically without repeating company blocks.",
-  "total_portals": 65,
+  "total_portals": 76,
   "job_boards": {
     "greenhouse": [
       {
@@ -38,6 +38,10 @@
       {
         "company": "Datadog",
         "board": "datadog"
+      },
+      {
+        "company": "Discord",
+        "board": "discord"
       },
       {
         "company": "Elastic",
@@ -80,6 +84,10 @@
         "board": "krafton"
       },
       {
+        "company": "Krafton India",
+        "board": "kraftonindia"
+      },
+      {
         "company": "MongoDB",
         "board": "mongodb"
       },
@@ -90,6 +98,10 @@
       {
         "company": "New Relic",
         "board": "newrelic"
+      },
+      {
+        "company": "Nordeus",
+        "board": "nordeus"
       },
       {
         "company": "Okta",
@@ -114,6 +126,10 @@
       {
         "company": "Rippling",
         "board": "rippling"
+      },
+      {
+        "company": "Roblox",
+        "board": "roblox"
       },
       {
         "company": "Rockstar Games",
@@ -148,6 +164,10 @@
         "board": "sumologic"
       },
       {
+        "company": "Take-Two Interactive",
+        "board": "taketwo"
+      },
+      {
         "company": "Tower Research Capital",
         "board": "towerresearchcapital"
       },
@@ -162,6 +182,10 @@
       {
         "company": "Zscaler",
         "board": "zscaler"
+      },
+      {
+        "company": "Zynga",
+        "board": "zynga"
       }
     ],
     "lever": [
@@ -270,16 +294,36 @@
         "site": "Global_Experienced_Careers"
       },
       {
+        "company": "Sony PlayStation",
+        "tenant": "sonyglobal",
+        "dc": "wd1",
+        "site": "SonyGlobalCareers"
+      },
+      {
         "company": "Target Tech",
         "tenant": "target",
         "dc": "wd5",
         "site": "targetcareers"
+      },
+      {
+        "company": "Unity Technologies",
+        "tenant": "unitytech",
+        "dc": "wd1",
+        "site": "Unity"
       }
     ],
     "smartrecruiters": [
       {
         "company": "Delivery Hero",
         "company_id": "DeliveryHero"
+      },
+      {
+        "company": "Gameloft",
+        "company_id": "gameloft"
+      },
+      {
+        "company": "Keywords Studios",
+        "company_id": "keywordsstudios"
       },
       {
         "company": "Renesas Electronics",
@@ -296,6 +340,10 @@
       {
         "company": "Ubisoft",
         "company_id": "Ubisoft2"
+      },
+      {
+        "company": "Ubisoft",
+        "company_id": "Ubisoft"
       }
     ]
   }

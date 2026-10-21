@@ -95,7 +95,13 @@ if active_config:
         st.markdown(f"**Keywords ({len(include_kw)}):** `{', '.join(include_kw[:8])}...`")
         st.markdown(f"**Locations:** `{', '.join(loc_kw[:5])}...`")
         
-        boards = active_config.get("job_boards", {})
+        catalog_p = BASE_DIR / "configs" / "companies.json"
+        catalog_boards = {}
+        if catalog_p.exists():
+            with open(catalog_p, "r", encoding="utf-8") as f:
+                catalog_boards = json.load(f).get("job_boards", {})
+
+        boards = active_config.get("job_boards") if active_config.get("job_boards") else catalog_boards
         gh_cnt = len(boards.get("greenhouse", []))
         lev_cnt = len(boards.get("lever", []))
         wd_cnt = len(boards.get("workday", []))
@@ -118,97 +124,100 @@ if active_config:
         session = requests.Session()
         session.headers.update({"User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64)"})
 
+        gh_boards = scan_live_jobs.TARGET_GREENHOUSE_BOARDS
+        lev_slugs = scan_live_jobs.TARGET_LEVER_COMPANIES
+        wd_comps = scan_live_jobs.TARGET_WORKDAY_COMPANIES
+        sr_comps = scan_live_jobs.TARGET_SMARTRECRUITERS_COMPANIES
+
+        total_boards = len(gh_boards) + len(lev_slugs) + len(wd_comps) + len(sr_comps)
+        processed = 0
         matches = []
-        all_boards = []
-        for b in scan_live_jobs.TARGET_GREENHOUSE_BOARDS:
-            all_boards.append(("Greenhouse", b))
-        for b in scan_live_jobs.TARGET_LEVER_COMPANIES:
-            all_boards.append(("Lever", b))
-        for b in scan_live_jobs.TARGET_WORKDAY_COMPANIES:
-            all_boards.append(("Workday", b))
-        for b in scan_live_jobs.TARGET_SMARTRECRUITERS_COMPANIES:
-            all_boards.append(("SmartRecruiters", b))
 
-        total_steps = len(all_boards)
-        for idx, (b_type, b_obj) in enumerate(all_boards):
-            status_text.text(f"Querying [{b_type}] {b_obj['company']}...")
-            found = []
-            if b_type == "Greenhouse":
-                found = scan_live_jobs.scan_greenhouse(session, b_obj)
-            elif b_type == "Lever":
-                found = scan_live_jobs.scan_lever(session, b_obj)
-            elif b_type == "Workday":
-                found = scan_live_jobs.scan_workday(session, b_obj)
-            elif b_type == "SmartRecruiters":
-                found = scan_live_jobs.scan_smartrecruiters(session, b_obj)
+        # 1. Scan Greenhouse
+        for comp in gh_boards:
+            status_text.text(f"Scanning Greenhouse: {comp['company']}...")
+            found = scan_live_jobs.scan_greenhouse(session, comp)
+            matches.extend(found)
+            processed += 1
+            progress_bar.progress(processed / max(total_boards, 1))
 
-            if found:
-                matches.extend(found)
+        # 2. Scan Lever
+        for comp in lev_slugs:
+            status_text.text(f"Scanning Lever: {comp['company']}...")
+            found = scan_live_jobs.scan_lever(session, comp)
+            matches.extend(found)
+            processed += 1
+            progress_bar.progress(processed / max(total_boards, 1))
 
-            progress_bar.progress((idx + 1) / total_steps)
+        # 3. Scan Workday
+        for comp in wd_comps:
+            status_text.text(f"Scanning Workday: {comp['company']}...")
+            found = scan_live_jobs.scan_workday(session, comp)
+            matches.extend(found)
+            processed += 1
+            progress_bar.progress(processed / max(total_boards, 1))
 
-        # Cleanup ephemeral config file
+        # 4. Scan SmartRecruiters
+        for comp in sr_comps:
+            status_text.text(f"Scanning SmartRecruiters: {comp['company']}...")
+            found = scan_live_jobs.scan_smartrecruiters(session, comp)
+            matches.extend(found)
+            processed += 1
+            progress_bar.progress(processed / max(total_boards, 1))
+
+        status_text.success(f"Scan complete! Analyzed {total_boards} company portals.")
+        progress_bar.progress(1.0)
+
+        # Cleanup ephemeral file
         if tmp_cfg.exists():
             tmp_cfg.unlink()
 
-        status_text.empty()
-        progress_bar.empty()
+        # Display Results
+        st.subheader(f"🎯 Matched Live Openings ({len(matches)})")
 
         if matches:
-            st.success(f"🎉 Found {len(matches)} active openings matching your criteria!")
-            
             df = pd.DataFrame(matches)
-            df = df.rename(columns={
-                "company": "Company",
-                "title": "Role Title",
-                "location": "Location",
-                "url": "Apply Link"
-            })
             
+            # Formatting table
+            df_display = df.copy()
+            df_display.columns = ["Company", "Role Title", "Location", "Job Link"]
+
             st.dataframe(
-                df,
+                df_display,
                 column_config={
-                    "Apply Link": st.column_config.LinkColumn(
-                        "Official Job Posting Link",
-                        help="Click to open the verified career page",
-                        validate=r"^https?://.*",
-                        max_chars=100
-                    )
+                    "Job Link": st.column_config.LinkColumn("Application URL")
                 },
                 use_container_width=True,
                 hide_index=True
             )
 
-            col_d1, col_d2 = st.columns(2)
-            with col_d1:
-                csv_data = df.to_csv(index=False).encode('utf-8')
-                st.download_button(
-                    label="📥 Download Results as CSV",
-                    data=csv_data,
-                    file_name="live_job_matches.csv",
-                    mime="text/csv"
-                )
-            with col_d2:
-                md_lines = [
-                    f"# Active Job Matches ({len(matches)} Roles Found)",
-                    "",
-                    "| # | Company | Role Title | Location | Direct Apply Link |",
-                    "| :---: | :--- | :--- | :--- | :--- |"
-                ]
-                for i, m in enumerate(matches, 1):
-                    md_lines.append(f"| {i} | **{m['company']}** | {m['title']} | {m['location']} | [Apply Here]({m['url']}) |")
-                
-                st.download_button(
-                    label="📥 Download Results as Markdown",
-                    data="\n".join(md_lines),
-                    file_name="live_job_matches.md",
-                    mime="text/markdown"
-                )
+            # Export Buttons
+            csv_data = df.to_csv(index=False).encode('utf-8')
+            st.download_button(
+                label="📥 Download Matches as CSV",
+                data=csv_data,
+                file_name=f"job_matches_{candidate_name.replace(' ', '_').lower()}.csv",
+                mime="text/csv"
+            )
+
+            # Markdown export
+            md_lines = [
+                f"# 🎯 Active Job Matches ({candidate_name})",
+                f"**Total Roles Found:** `{len(matches)}`",
+                "",
+                "| Company | Role Title | Location | Direct Link |",
+                "| :--- | :--- | :--- | :--- |"
+            ]
+            for m in matches:
+                md_lines.append(f"| **{m['company']}** | {m['title']} | {m['location']} | [Apply]({m['url']}) |")
+
+            st.download_button(
+                label="📥 Download Matches as Markdown",
+                data="\n".join(md_lines),
+                file_name=f"LATEST_JOB_MATCHES_{candidate_name.replace(' ', '_').upper()}.md",
+                mime="text/markdown"
+            )
         else:
-            st.warning("No matching openings found right now for these exact filters. Try broadening your keywords or adding more company boards.")
-
+            st.warning("No live positions currently matched your keywords and location filters. Try broadening your keywords.")
 else:
-    st.info("👈 Please upload your `config.json` or choose an input method in the sidebar to get started.")
-
-st.sidebar.divider()
-st.sidebar.caption("Automated Career Portal Live Job Scanner | Open Source & 100% PII-Safe")
+    st.info("👈 Please upload your `config.json` or paste its text in the sidebar to begin scanning.")
